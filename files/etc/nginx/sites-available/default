@@ -1,0 +1,50 @@
+# Based on Ubuntu's nginx default config file
+# with sections for php-fpm uncommented
+
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server ipv6only=on;
+
+        gzip on;
+        gzip_types text/plain application/xml text/css application/javascript application/x-javascript text/javascript;
+
+        client_max_body_size 5m;
+
+        root /usr/share/nginx/html;
+        index index.php index.html index.htm;
+
+        # Make site accessible from http://localhost/
+        server_name localhost;
+
+        location / {
+                # First attempt to serve request as file, then
+                # as directory, then fall back to rewriting to index.php.
+                try_files $uri $uri/ @rewrite;
+        }
+
+        location @rewrite {
+            rewrite ^/(.*)$ /index.php?q=$1;
+        }
+
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        location ~ \.php$ {
+               fastcgi_split_path_info ^(.+\.php)(/.+)$;
+               # NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+
+               # With php5-fpm:
+               #fastcgi_pass unix:/var/run/php5-fpm.sock;
+               fastcgi_pass 127.0.0.1:9000;
+               #fastcgi_index index.php;
+               include fastcgi_params;
+               fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        }
+
+        # deny access to .htaccess files, if Apache's document root
+        # concurs with nginx's one
+
+        location ~ /\.ht {
+               deny all;
+        }
+
+
+}
